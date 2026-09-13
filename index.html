@@ -77,28 +77,23 @@
   }
 
   /* =========================================================
-     BLOCK 2 — "поверните экран" hint
-     Lives inside screen2's top margin strip (mirrors the dots,
-     which live in the bottom margin strip) instead of being its
-     own section — that way screen2 stays a clean, full 100svh and
-     doesn't leave the hint half-visible when scrolled into view.
+     BLOCK 2 — "поверните экран" (10%)
+     Its own dedicated section again. It's never a scroll-snap
+     point (only screen1/screen2 are), so scrolling always glides
+     through it and comes to rest on a full 100% screen — never
+     with the banner half-visible.
      ========================================================= */
   .rotate-banner{
-    position:absolute;
-    top:0;
-    left:0;
-    right:0;
-    height:var(--marginY);
+    height:10svh;
+    border-top:1px solid var(--fg);
     display:flex;
     align-items:center;
     justify-content:center;
-    gap:8px;
-    z-index:4;
-    pointer-events:none;
+    gap:10px;
   }
   .rotate-banner .icon{
-    width:15px;
-    height:15px;
+    width:18px;
+    height:18px;
     flex:0 0 auto;
     animation:tilt 1.6s ease-in-out infinite;
     transform-origin:50% 50%;
@@ -111,7 +106,7 @@
     fill:none;
   }
   .rotate-banner span{
-    font-size:11px;
+    font-size:12px;
     letter-spacing:0.02em;
   }
   @keyframes tilt{
@@ -294,13 +289,14 @@
     </div>
   </section>
 
+  <section class="rotate-banner">
+    <span class="icon">
+      <svg viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="2.2"/><line x1="10" y1="18" x2="14" y2="18"/></svg>
+    </span>
+    <span>поверните экран</span>
+  </section>
+
   <section class="screen2" id="screen2">
-    <div class="rotate-banner">
-      <span class="icon">
-        <svg viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="2.2"/><line x1="10" y1="18" x2="14" y2="18"/></svg>
-      </span>
-      <span>поверните экран</span>
-    </div>
     <div class="pdf-gallery" id="pdfGallery"></div>
     <div class="dots" id="dots"></div>
   </section>
