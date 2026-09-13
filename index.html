@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>knstwollen — portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --fg:#000;
+    --bg:#fff;
+    --marginX: 9vw;
+    --marginY: 5svh;
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{
+    margin:0; padding:0;
+    background:var(--bg); color:var(--fg);
+    font-family:'IBM Plex Mono', monospace;
+    width:100%; overflow-x:hidden;
+  }
+  body{
+    opacity:0;
+    transition:opacity .5s ease;
+  }
+  body.ready{ opacity:1; }
+  a{ color:inherit; text-decoration:none; }
+
+  /* =========================================================
+     BLOCK 1 — logo + social links (100%)
+     ========================================================= */
+  .screen1{
+    height:100svh;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    padding:9vw 9vw 7vw;
+  }
+
+  .logo-area{
+    flex:1;
+    min-height:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .logo-area img{
+    width:50%;
+    height:auto;
+    display:block;
+  }
+
+  .social-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    width:100%;
+    max-width:280px;
+    margin:0 auto;
+  }
+  .social-row a{
+    font-size:15px;
+    letter-spacing:0.02em;
+    color:var(--fg);
+    transition:opacity .15s ease;
+  }
+  .social-row a:active{ opacity:0.45; }
+  @media (hover:hover){
+    .social-row a:hover{ opacity:0.5; }
+  }
+
+  /* =========================================================
+     BLOCK 2 — "поверните экран" (10%)
+     ========================================================= */
+  .rotate-banner{
+    height:10svh;
+    border-top:1px solid var(--fg);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+  }
+  .rotate-banner .icon{
+    width:18px;
+    height:18px;
+    flex:0 0 auto;
+    animation:tilt 1.6s ease-in-out infinite;
+    transform-origin:50% 50%;
+  }
+  .rotate-banner .icon svg{
+    width:100%;
+    height:100%;
+    stroke:var(--fg);
+    stroke-width:1.4;
+    fill:none;
+  }
+  .rotate-banner span{
+    font-size:12px;
+    letter-spacing:0.02em;
+  }
+  @keyframes tilt{
+    0%   { transform:rotate(0deg); }
+    45%  { transform:rotate(-90deg); }
+    55%  { transform:rotate(-90deg); }
+    100% { transform:rotate(0deg); }
+  }
+
+  /* =========================================================
+     BLOCK 3 — pdf gallery, rotated for landscape reading (100%)
+     ========================================================= */
+  .screen2{
+    height:100svh;
+    position:relative;
+    overflow:hidden;
+    border-top:1px solid var(--fg);
+    background:var(--bg);
+  }
+
+  /* the gallery only occupies the actual photo stage (inset by the
+     margins) — the white margin strips around it belong to .screen2,
+     not to the scroller, so swiping there falls through to the
+     normal page scroll instead of flipping through the portfolio */
+  .pdf-gallery{
+    position:absolute;
+    top:var(--marginY);
+    bottom:var(--marginY);
+    left:var(--marginX);
+    right:var(--marginX);
+    display:flex;
+    flex-direction:row;
+    overflow-x:auto;
+    overflow-y:hidden;
+    scroll-snap-type:x mandatory;
+    -webkit-overflow-scrolling:touch;
+    touch-action:pan-x;
+  }
+  .pdf-gallery::-webkit-scrollbar{ display:none; }
+  .pdf-gallery{ scrollbar-width:none; }
+
+  .pdf-slide{
+    flex:0 0 100%;
+    width:100%;
+    height:100%;
+    scroll-snap-align:center;
+    scroll-snap-stop:always;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .pdf-slide img{
+    -webkit-user-drag:none;
+    user-select:none;
+    display:block;
+    object-fit:contain;
+    width:auto;
+    height:auto;
+    transform:rotate(90deg);
+    max-width:calc(100svh - (var(--marginY) * 2));
+    max-height:calc(100vw - (var(--marginX) * 2));
+  }
+
+  /* dots live in the bottom margin strip, in a row — width is set
+     from JS to match the actual rendered width of the photo, not
+     the full margin-to-margin stage */
+  .dots{
+    position:absolute;
+    left:50%;
+    bottom:calc(var(--marginY) / 2);
+    transform:translate(-50%, 50%);
+    display:flex;
+    flex-direction:row-reverse;
+    align-items:center;
+    justify-content:space-between;
+    z-index:3;
+  }
+  .dots i{
+    width:12px;
+    height:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex:0 0 auto;
+    cursor:pointer;
+  }
+  .dots i::before{
+    content:"";
+    width:4px;
+    height:4px;
+    border-radius:50%;
+    background:var(--fg);
+    opacity:0.25;
+  }
+  .dots i.active::before{
+    opacity:1;
+    width:5px;
+    height:5px;
+  }
+</style>
+</head>
+<body>
+
+  <section class="screen1">
+    <div class="logo-area">
+      <img src="assets/logo.png" alt="knstwollen">
+    </div>
+    <div class="social-row">
+      <a href="https://www.instagram.com/knstwollen?stkn=MWtyc2pvOHdrYTl5eQ==" data-app="instagram://user?username=knstwollen" class="app-link">inst</a>
+      <a href="https://t.me/knstwollen" data-app="tg://resolve?domain=knstwollen" class="app-link">tg</a>
+      <a href="mailto:knstwollen@gmail.com">mail</a>
+    </div>
+  </section>
+
+  <section class="rotate-banner">
+    <span class="icon">
+      <svg viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="2.2"/><line x1="10" y1="18" x2="14" y2="18"/></svg>
+    </span>
+    <span>поверните экран</span>
+  </section>
+
+  <section class="screen2" id="screen2">
+    <div class="pdf-gallery" id="pdfGallery"></div>
+    <div class="dots" id="dots"></div>
+  </section>
+
+<script>
+  // ---- instagram / telegram: try to open the native app first,
+  // fall back to the web page if the app isn't installed ----
+  document.querySelectorAll('.app-link').forEach((link) => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const webUrl = link.getAttribute('href');
+      const appUrl = link.getAttribute('data-app');
+      let leftPage = false;
+      function onHide(){ leftPage = true; }
+      document.addEventListener('visibilitychange', onHide, { once:true });
+      window.location.href = appUrl;
+      setTimeout(() => {
+        document.removeEventListener('visibilitychange', onHide);
+        if (!leftPage){
+          window.open(webUrl, '_blank', 'noopener');
+        }
+      }, 1200);
+    });
+  });
+
+  // ---- build the pdf gallery, numeric ascending order (13 removed) ----
+  const PAGES = [14,15,16,18,19,110,111,112,113,114,115,116,117,118,119,120,121,122,123,124];
+  const TOTAL = PAGES.length;
+
+  const gallery = document.getElementById('pdfGallery');
+  const dotsWrap = document.getElementById('dots');
+
+  PAGES.forEach((n, i) => {
+    const slide = document.createElement('div');
+    slide.className = 'pdf-slide';
+    const img = document.createElement('img');
+    img.src = `assets/pdf/${n}.jpg`;
+    img.alt = `лист портфолио ${i + 1}`;
+    img.loading = (i <= 1) ? 'eager' : 'lazy';
+    img.draggable = false;
+    slide.appendChild(img);
+    // inserted at the front each time so the DOM ends up in reverse
+    // page order (last page first, page 1 last) — this gives the same
+    // right-to-left visual flow as flex-direction:row-reverse would,
+    // but with normal, predictable scrollLeft behavior in every browser
+    gallery.insertBefore(slide, gallery.firstChild);
+
+    const dot = document.createElement('i');
+    if (i === 0) dot.classList.add('active');
+    dot.addEventListener('click', () => {
+      const target = (TOTAL - 1 - i) * gallery.clientWidth;
+      gallery.scrollTo({ left: target, behavior:'smooth' });
+    });
+    dotsWrap.appendChild(dot);
+  });
+
+  const dotEls = Array.from(dotsWrap.children);
+
+  // slides are inserted into the DOM in reverse page order (see above),
+  // so page 1 sits at the rightmost position and the scroll position
+  // needs to be inverted to map back to its logical index
+  function currentIndex(){
+    const raw = Math.round(gallery.scrollLeft / gallery.clientWidth);
+    return TOTAL - 1 - raw;
+  }
+  function updateDots(){
+    const idx = Math.min(Math.max(currentIndex(), 0), TOTAL - 1);
+    dotEls.forEach((d, i) => d.classList.toggle('active', i === idx));
+  }
+  gallery.addEventListener('scroll', () => {
+    window.requestAnimationFrame(updateDots);
+  }, { passive:true });
+  // extra safety net: once the snap settles, make sure the dot matches
+  // exactly (covers browsers where the scroll event can be sparse)
+  gallery.addEventListener('scrollend', updateDots);
+
+  // match the dots row's width to the actual rendered width of the
+  // photo (all pages share the same aspect ratio, so measuring the
+  // currently visible one is enough)
+  function updateDotsWidth(){
+    const idx = Math.min(Math.max(currentIndex(), 0), TOTAL - 1);
+    const img = gallery.children[idx] && gallery.children[idx].querySelector('img');
+    if (!img) return;
+    const w = img.getBoundingClientRect().width;
+    if (w > 0) dotsWrap.style.width = w + 'px';
+  }
+  const firstImg = gallery.querySelector('img');
+  if (firstImg){
+    if (firstImg.complete) updateDotsWidth();
+    else firstImg.addEventListener('load', updateDotsWidth, { once:true });
+  }
+  window.addEventListener('resize', updateDotsWidth);
+  window.addEventListener('orientationchange', updateDotsWidth);
+
+  // desktop-testing convenience: drag with mouse
+  let isDown = false, startX = 0, startLeft = 0;
+  gallery.addEventListener('mousedown', (e) => {
+    isDown = true;
+    startX = e.pageX;
+    startLeft = gallery.scrollLeft;
+  });
+  window.addEventListener('mouseup', () => { isDown = false; });
+  window.addEventListener('mousemove', (e) => {
+    if(!isDown) return;
+    gallery.scrollLeft = startLeft - (e.pageX - startX);
+  });
+
+  // start on page 1, which sits at the rightmost scroll position
+  requestAnimationFrame(() => {
+    gallery.scrollLeft = gallery.scrollWidth - gallery.clientWidth;
+    updateDots();
+    updateDotsWidth();
+  });
+
+  // ---- open the site scrolled to the bottom, then glide up to the top ----
+  // (custom animation instead of native smooth-scroll so the speed is
+  // controllable)
+  function smoothScrollTo(targetY, duration){
+    const startY = window.scrollY;
+    const diff = targetY - startY;
+    const start = performance.now();
+    function easeInOutQuad(t){ return t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t+2, 2) / 2; }
+    function step(now){
+      const t = Math.min((now - start) / duration, 1);
+      window.scrollTo(0, startY + diff * easeInOutQuad(t));
+      if (t < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  window.scrollTo(0, document.documentElement.scrollHeight);
+  document.body.classList.add('ready');
+  window.requestAnimationFrame(() => {
+    window.scrollTo(0, document.documentElement.scrollHeight);
+    setTimeout(() => {
+      smoothScrollTo(0, 1600);
+    }, 300);
+  });
+</script>
+</body>
+</html>
