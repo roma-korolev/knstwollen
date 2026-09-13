@@ -21,6 +21,9 @@
     font-family:'IBM Plex Mono', monospace;
     width:100%; overflow-x:hidden;
   }
+  html{
+    scroll-snap-type:y mandatory;
+  }
   body{
     opacity:0;
     transition:opacity .5s ease;
@@ -33,6 +36,8 @@
      ========================================================= */
   .screen1{
     height:100svh;
+    scroll-snap-align:start;
+    scroll-snap-stop:always;
     display:flex;
     flex-direction:column;
     justify-content:space-between;
@@ -72,19 +77,28 @@
   }
 
   /* =========================================================
-     BLOCK 2 — "поверните экран" (10%)
+     BLOCK 2 — "поверните экран" hint
+     Lives inside screen2's top margin strip (mirrors the dots,
+     which live in the bottom margin strip) instead of being its
+     own section — that way screen2 stays a clean, full 100svh and
+     doesn't leave the hint half-visible when scrolled into view.
      ========================================================= */
   .rotate-banner{
-    height:10svh;
-    border-top:1px solid var(--fg);
+    position:absolute;
+    top:0;
+    left:0;
+    right:0;
+    height:var(--marginY);
     display:flex;
     align-items:center;
     justify-content:center;
-    gap:10px;
+    gap:8px;
+    z-index:4;
+    pointer-events:none;
   }
   .rotate-banner .icon{
-    width:18px;
-    height:18px;
+    width:15px;
+    height:15px;
     flex:0 0 auto;
     animation:tilt 1.6s ease-in-out infinite;
     transform-origin:50% 50%;
@@ -97,7 +111,7 @@
     fill:none;
   }
   .rotate-banner span{
-    font-size:12px;
+    font-size:11px;
     letter-spacing:0.02em;
   }
   @keyframes tilt{
@@ -112,6 +126,8 @@
      ========================================================= */
   .screen2{
     height:100svh;
+    scroll-snap-align:start;
+    scroll-snap-stop:always;
     position:relative;
     overflow:hidden;
     border-top:1px solid var(--fg);
@@ -159,6 +175,7 @@
     transform:rotate(90deg);
     max-width:calc(100svh - (var(--marginY) * 2));
     max-height:calc(100vw - (var(--marginX) * 2));
+    cursor:zoom-in;
   }
 
   /* dots live in the bottom margin strip, in a row — width is set
@@ -197,6 +214,71 @@
     width:5px;
     height:5px;
   }
+
+  /* =========================================================
+     LIGHTBOX — fullscreen zoomable preview
+     Pinch-zoom / double-tap-zoom is native browser behavior
+     (the viewport meta tag doesn't disable scaling), so no custom
+     zoom JS is needed — this just gives it a clean, isolated,
+     full-bleed image to zoom into instead of the cramped layout.
+     ========================================================= */
+  .lightbox{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.92);
+    z-index:1000;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    opacity:0;
+    visibility:hidden;
+    transition:opacity .25s ease, visibility 0s linear .25s;
+  }
+  .lightbox.open{
+    opacity:1;
+    visibility:visible;
+    transition:opacity .25s ease;
+  }
+  .lightbox img{
+    display:block;
+    object-fit:contain;
+    width:auto;
+    height:auto;
+    max-width:96vw;
+    max-height:96svh;
+    transform:rotate(90deg) scale(0.94);
+    transform-origin:center center;
+    transition:transform .25s ease;
+  }
+  .lightbox.open img{
+    transform:rotate(90deg) scale(1);
+  }
+  .lightbox-close{
+    position:fixed;
+    top:calc(env(safe-area-inset-top, 0px) + 16px);
+    right:calc(env(safe-area-inset-right, 0px) + 16px);
+    width:40px;
+    height:40px;
+    border:none;
+    border-radius:50%;
+    background:rgba(255,255,255,0.12);
+    color:#fff;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:22px;
+    line-height:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    z-index:1001;
+    -webkit-backdrop-filter:blur(6px);
+    backdrop-filter:blur(6px);
+    transition:background .15s ease, transform .15s ease;
+  }
+  .lightbox-close:active{
+    transform:scale(0.9);
+    background:rgba(255,255,255,0.22);
+  }
 </style>
 </head>
 <body>
@@ -212,17 +294,21 @@
     </div>
   </section>
 
-  <section class="rotate-banner">
-    <span class="icon">
-      <svg viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="2.2"/><line x1="10" y1="18" x2="14" y2="18"/></svg>
-    </span>
-    <span>поверните экран</span>
-  </section>
-
   <section class="screen2" id="screen2">
+    <div class="rotate-banner">
+      <span class="icon">
+        <svg viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="2.2"/><line x1="10" y1="18" x2="14" y2="18"/></svg>
+      </span>
+      <span>поверните экран</span>
+    </div>
     <div class="pdf-gallery" id="pdfGallery"></div>
     <div class="dots" id="dots"></div>
   </section>
+
+  <div class="lightbox" id="lightbox">
+    <button class="lightbox-close" id="lightboxClose" aria-label="Закрыть">&times;</button>
+    <img id="lightboxImg" src="" alt="">
+  </div>
 
 <script>
   // ---- instagram / telegram: try to open the native app first,
@@ -252,6 +338,28 @@
   const gallery = document.getElementById('pdfGallery');
   const dotsWrap = document.getElementById('dots');
 
+  // ---- lightbox: tap a photo to open it fullscreen and zoomable ----
+  // pinch/double-tap zoom is native browser behavior here since the
+  // viewport meta tag never disables scaling — no custom zoom JS needed
+  const lightbox = document.getElementById('lightbox');
+  const lightboxImg = document.getElementById('lightboxImg');
+  const lightboxClose = document.getElementById('lightboxClose');
+
+  function openLightbox(src, alt){
+    lightboxImg.src = src;
+    lightboxImg.alt = alt || '';
+    lightbox.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeLightbox(){
+    lightbox.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  lightboxClose.addEventListener('click', closeLightbox);
+  lightbox.addEventListener('click', (e) => {
+    if (e.target === lightbox) closeLightbox(); // tap on the dark backdrop, not the photo
+  });
+
   PAGES.forEach((n, i) => {
     const slide = document.createElement('div');
     slide.className = 'pdf-slide';
@@ -260,6 +368,10 @@
     img.alt = `лист портфолио ${i + 1}`;
     img.loading = (i <= 1) ? 'eager' : 'lazy';
     img.draggable = false;
+    img.addEventListener('click', () => {
+      if (mouseDragged) return; // ignore the click that follows a desktop drag-scroll
+      openLightbox(img.src, img.alt);
+    });
     slide.appendChild(img);
     // inserted at the front each time so the DOM ends up in reverse
     // page order (last page first, page 1 last) — this gives the same
@@ -315,15 +427,17 @@
   window.addEventListener('orientationchange', updateDotsWidth);
 
   // desktop-testing convenience: drag with mouse
-  let isDown = false, startX = 0, startLeft = 0;
+  let isDown = false, startX = 0, startLeft = 0, mouseDragged = false;
   gallery.addEventListener('mousedown', (e) => {
     isDown = true;
+    mouseDragged = false;
     startX = e.pageX;
     startLeft = gallery.scrollLeft;
   });
   window.addEventListener('mouseup', () => { isDown = false; });
   window.addEventListener('mousemove', (e) => {
     if(!isDown) return;
+    if (Math.abs(e.pageX - startX) > 5) mouseDragged = true;
     gallery.scrollLeft = startLeft - (e.pageX - startX);
   });
 
