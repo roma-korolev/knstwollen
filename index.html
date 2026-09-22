@@ -61,15 +61,6 @@
     height:auto;
     display:block;
   }
-  .logo-caption{
-    display:flex;
-    justify-content:space-between;
-    width:100%;
-    margin-top:3vw;
-    font-size:clamp(10px, 2.4vw, 13px);
-    line-height:1;
-  }
-
   .social-row{
     display:flex;
     align-items:center;
@@ -109,28 +100,8 @@
   /* blurred backdrop of the active photo — confined to this section only,
      so it only ever colors the bottom half of the page */
   .screen2-bg{
-    position:absolute;
-    inset:0;
-    z-index:0;
+    display:none;
   }
-  .screen2-bg::after{
-    content:"";
-    position:absolute;
-    inset:0;
-    background:var(--bg);
-    opacity:0.62;
-  }
-  .bg-layer{
-    position:absolute;
-    inset:-12%;
-    background-size:cover;
-    background-position:center;
-    filter:blur(46px) saturate(1.1);
-    transform:scale(1.12);
-    opacity:0;
-    transition:opacity .7s ease;
-  }
-  .bg-layer.active{ opacity:0.55; }
 
   .carousel3d-wrap{
     position:relative;
@@ -218,6 +189,53 @@
     opacity:1;
     width:5px;
     height:5px;
+  }
+
+  .section-heading{
+    position:absolute;
+    top:var(--marginY);
+    left:0;
+    right:0;
+    z-index:2;
+    text-align:center;
+    font-size:13px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+  }
+  .section-heading.light{
+    color:#fff;
+    text-shadow:0 1px 10px rgba(0,0,0,0.55);
+  }
+
+  /* =========================================================
+     BLOCK 3 — full-bleed photo (100%) with bottom scrim + credits
+     ========================================================= */
+  .screen3{
+    height:100svh;
+    scroll-snap-align:start;
+    scroll-snap-stop:always;
+    position:relative;
+    overflow:hidden;
+    background-image:url('assets/6.JPG');
+    background-size:cover;
+    background-position:center;
+  }
+  .screen3-scrim{
+    position:absolute;
+    left:0; right:0; bottom:0;
+    height:30%;
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+    padding:0 9vw 7vw;
+    background:linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.82) 65%, rgba(0,0,0,0.9) 100%);
+  }
+  .screen3-names{
+    color:#fff;
+    text-align:center;
+    font-size:clamp(11px, 2.8vw, 14px);
+    line-height:1.7;
+    letter-spacing:0.01em;
   }
 
   /* =========================================================
@@ -322,9 +340,6 @@
     <div class="logo-area">
       <div class="logo-block">
         <img src="assets/logo.png" alt="knstwollen">
-        <div class="logo-caption">
-          <span>k</span><span>u</span><span>n</span><span>s</span><span>t</span><span>w</span><span>o</span><span>l</span><span>l</span><span>e</span><span>n</span>
-        </div>
       </div>
     </div>
     <div class="social-row">
@@ -335,6 +350,7 @@
   </section>
 
   <section class="screen2" id="screen2">
+    <div class="section-heading">Проекты</div>
     <div class="screen2-bg">
       <div class="bg-layer" id="bgLayerA"></div>
       <div class="bg-layer" id="bgLayerB"></div>
@@ -347,6 +363,13 @@
       <div class="date" id="c3dDate"></div>
     </div>
     <div class="dots" id="dots"></div>
+  </section>
+
+  <section class="screen3">
+    <div class="section-heading light">Команда</div>
+    <div class="screen3-scrim">
+      <div class="screen3-names">Соня Королева, Женя Попов, Матвей Натанзон, Софа Симонян, Саша Шевцова, Аня Зубатова, Андрей Чистяков, Давид Туртурикэ, Соня Крюкова</div>
+    </div>
   </section>
 
   <div class="lightbox" id="lightbox">
@@ -385,10 +408,10 @@
   // align:'left' -> when this thumbnail gets cropped by object-fit:cover,
   // keep the LEFT side of the photo instead of the center
   const SLIDES = [
-    { src:'assets/2.JPG', title:'Комплект барной мебели "Сервиз"', date:'Москва | 2026' },
-    { src:'assets/3.JPG', title:'Концепция | фотобудка "В ритме мегаполиса"', date:'Москва | 2026', align:'left' },
-    { src:'assets/4.JPG', title:'Концепция | реновация интерьера бара "Ровестник"', date:'Москва | 2026' },
-    { src:'assets/5.JPG', title:'Концепция | ленд арт для фестиваля "Архстояние"', date:'Никола-Ленивец | 2025' }
+    { src:'assets/2.jpg', title:'Комплект барной мебели "Сервиз"', date:'Москва | 2026' },
+    { src:'assets/3.jpg', title:'Концепция | фотобудка "В ритме мегаполиса"', date:'Москва | 2026', align:'left' },
+    { src:'assets/4.jpg', title:'Концепция | реновация интерьера бара "Ровестник"', date:'Москва | 2026' },
+    { src:'assets/5.jpg', title:'Концепция | ленд арт для фестиваля "Архстояние"', date:'Никола-Ленивец | 2025' }
   ];
   const N = SLIDES.length;
 
