@@ -737,23 +737,29 @@
     const MAX_SIZE = 28;
     screen3Names.style.lineHeight = String(LINE_HEIGHT_RATIO);
     let lo = MIN_SIZE, hi = MAX_SIZE, best = MIN_SIZE;
-    while (lo <= hi){
+    for (let i = 0; i < 24; i++){
       const mid = (lo + hi) / 2;
       screen3Names.style.fontSize = mid + 'px';
-      const lineHeightPx = mid * LINE_HEIGHT_RATIO;
-      const lines = Math.round(screen3Names.scrollHeight / lineHeightPx);
-      if (lines <= MAX_LINES){
+      const maxHeight = mid * LINE_HEIGHT_RATIO * MAX_LINES;
+      // small tolerance for sub-pixel rounding, but no rounding of "lines"
+      // themselves — otherwise a text that's really 2.4 lines tall gets
+      // misread as fitting in 2
+      const fits = screen3Names.scrollHeight <= maxHeight + 1;
+      if (fits){
         best = mid;
-        lo = mid + 0.5;
+        lo = mid;
       } else {
-        hi = mid - 0.5;
+        hi = mid;
       }
+      if (hi - lo < 0.25) break;
     }
     screen3Names.style.fontSize = best + 'px';
   }
   fitTeamNames();
   window.addEventListener('resize', fitTeamNames);
   window.addEventListener('orientationchange', fitTeamNames);
+  window.addEventListener('load', fitTeamNames);
+  setTimeout(fitTeamNames, 400);
   if (document.fonts && document.fonts.ready){
     document.fonts.ready.then(fitTeamNames);
   }
