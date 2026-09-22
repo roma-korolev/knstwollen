@@ -90,12 +90,18 @@
     scroll-snap-stop:always;
     position:relative;
     overflow:hidden;
-    border-top:1px solid var(--fg);
     background:#f0f0ef;
     display:flex;
     flex-direction:column;
     justify-content:center;
     padding:var(--marginY) 0;
+  }
+
+  /* smooth white -> light-gray handoff between the title screen and
+     the projects screen */
+  .screen-transition{
+    height:10svh;
+    background:linear-gradient(to bottom, var(--bg) 0%, #f0f0ef 100%);
   }
 
   /* blurred backdrop of the active photo — confined to this section only,
@@ -195,10 +201,9 @@
   .section-heading{
     position:absolute;
     top:var(--marginY);
-    left:0;
-    right:0;
+    left:var(--marginX);
     z-index:2;
-    text-align:center;
+    text-align:left;
     font-size:13px;
     letter-spacing:0.12em;
     text-transform:uppercase;
@@ -227,15 +232,16 @@
     height:30%;
     display:flex;
     align-items:flex-end;
-    justify-content:center;
+    justify-content:flex-start;
     padding:0 9vw 7vw;
     background:linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.82) 65%, rgba(0,0,0,0.9) 100%);
   }
   .screen3-names{
+    width:100%;
     color:#fff;
-    text-align:center;
-    font-size:clamp(11px, 2.8vw, 14px);
-    line-height:1.7;
+    text-align:left;
+    font-size:14px;
+    line-height:1.3;
     letter-spacing:0.01em;
   }
 
@@ -349,6 +355,8 @@
       <a href="mailto:knstwollen@gmail.com">mail</a>
     </div>
   </section>
+
+  <div class="screen-transition"></div>
 
   <section class="screen2" id="screen2">
     <div class="section-heading">Проекты</div>
@@ -717,6 +725,38 @@
   window.addEventListener('orientationchange', () => {
     render(baseIndex, false);
   });
+
+  // ---- team names: pick the largest font size that still wraps into
+  // no more than 2 lines, so it always reads as big as possible ----
+  const screen3Names = document.querySelector('.screen3-names');
+  function fitTeamNames(){
+    if (!screen3Names) return;
+    const LINE_HEIGHT_RATIO = 1.3;
+    const MAX_LINES = 2;
+    const MIN_SIZE = 9;
+    const MAX_SIZE = 28;
+    screen3Names.style.lineHeight = String(LINE_HEIGHT_RATIO);
+    let lo = MIN_SIZE, hi = MAX_SIZE, best = MIN_SIZE;
+    while (lo <= hi){
+      const mid = (lo + hi) / 2;
+      screen3Names.style.fontSize = mid + 'px';
+      const lineHeightPx = mid * LINE_HEIGHT_RATIO;
+      const lines = Math.round(screen3Names.scrollHeight / lineHeightPx);
+      if (lines <= MAX_LINES){
+        best = mid;
+        lo = mid + 0.5;
+      } else {
+        hi = mid - 0.5;
+      }
+    }
+    screen3Names.style.fontSize = best + 'px';
+  }
+  fitTeamNames();
+  window.addEventListener('resize', fitTeamNames);
+  window.addEventListener('orientationchange', fitTeamNames);
+  if (document.fonts && document.fonts.ready){
+    document.fonts.ready.then(fitTeamNames);
+  }
 
   // ---- initial state ----
   render(0, false);
