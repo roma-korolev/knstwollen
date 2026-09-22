@@ -240,8 +240,8 @@
     width:100%;
     color:#fff;
     text-align:left;
-    font-size:14px;
-    line-height:1.3;
+    font-size:clamp(11px, 3.4vw, 15px);
+    line-height:1.5;
     letter-spacing:0.01em;
   }
 
@@ -377,7 +377,7 @@
   <section class="screen3">
     <div class="section-heading light">Команда</div>
     <div class="screen3-scrim">
-      <div class="screen3-names">Соня Королева, Женя Попов, Матвей Натанзон, Софа Симонян, Саша Шевцова, Аня Зубатова, Андрей Чистяков, Давид Туртурикэ, Соня Крюкова</div>
+      <div class="screen3-names">Соня&nbsp;Королева, Женя&nbsp;Попов, Матвей&nbsp;Натанзон, Софа&nbsp;Симонян, Саша&nbsp;Шевцова, Аня&nbsp;Зубатова, Андрей&nbsp;Чистяков, Давид&nbsp;Туртурикэ, Соня&nbsp;Крюкова</div>
     </div>
   </section>
 
@@ -610,15 +610,30 @@
     return diff;
   }
 
+  // ---- "включалка" для соседних карточек в карусели ----
+  // false: видно только текущее фото, соседние полностью скрыты
+  // true:  соседние фото немного видны и уменьшены по бокам (как раньше)
+  const SHOW_NEIGHBOR_CARDS = false;
+
   function render(current, animate){
     cardEls.forEach((el, i) => {
       const diff = wrapDiff(i - current);
       const absDiff = Math.abs(diff);
-      // flat carousel: no rotation/tilt — only translateX + scale, so the
-      // two neighboring photos sit flush next to the center one
-      const translateX = diff * 78;
-      const scale = Math.max(1 - absDiff * 0.24, 0.3);
-      const opacity = Math.max(1 - absDiff * 0.55, 0);
+      let translateX, scale, opacity;
+      if (SHOW_NEIGHBOR_CARDS){
+        // flat carousel: no rotation/tilt — only translateX + scale, so the
+        // two neighboring photos sit flush next to the center one
+        translateX = diff * 78;
+        scale = Math.max(1 - absDiff * 0.24, 0.3);
+        opacity = Math.max(1 - absDiff * 0.55, 0);
+      } else {
+        // only the active photo is shown; neighbors wait just off to the
+        // side (still animated during a swipe) and fade out before they
+        // become visible
+        translateX = diff * 100;
+        scale = 1;
+        opacity = Math.max(1 - absDiff * 2, 0);
+      }
       const visible = opacity > 0.03;
       el.style.transition = animate
         ? 'transform .5s cubic-bezier(.22,.68,0,1), opacity .5s ease'
@@ -725,44 +740,6 @@
   window.addEventListener('orientationchange', () => {
     render(baseIndex, false);
   });
-
-  // ---- team names: pick the largest font size that still wraps into
-  // no more than 2 lines, so it always reads as big as possible ----
-  const screen3Names = document.querySelector('.screen3-names');
-  function fitTeamNames(){
-    if (!screen3Names) return;
-    const LINE_HEIGHT_RATIO = 1.3;
-    const MAX_LINES = 2;
-    const MIN_SIZE = 9;
-    const MAX_SIZE = 28;
-    screen3Names.style.lineHeight = String(LINE_HEIGHT_RATIO);
-    let lo = MIN_SIZE, hi = MAX_SIZE, best = MIN_SIZE;
-    for (let i = 0; i < 24; i++){
-      const mid = (lo + hi) / 2;
-      screen3Names.style.fontSize = mid + 'px';
-      const maxHeight = mid * LINE_HEIGHT_RATIO * MAX_LINES;
-      // small tolerance for sub-pixel rounding, but no rounding of "lines"
-      // themselves — otherwise a text that's really 2.4 lines tall gets
-      // misread as fitting in 2
-      const fits = screen3Names.scrollHeight <= maxHeight + 1;
-      if (fits){
-        best = mid;
-        lo = mid;
-      } else {
-        hi = mid;
-      }
-      if (hi - lo < 0.25) break;
-    }
-    screen3Names.style.fontSize = best + 'px';
-  }
-  fitTeamNames();
-  window.addEventListener('resize', fitTeamNames);
-  window.addEventListener('orientationchange', fitTeamNames);
-  window.addEventListener('load', fitTeamNames);
-  setTimeout(fitTeamNames, 400);
-  if (document.fonts && document.fonts.ready){
-    document.fonts.ready.then(fitTeamNames);
-  }
 
   // ---- initial state ----
   render(0, false);
