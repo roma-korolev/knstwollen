@@ -48,13 +48,26 @@
     flex:1;
     min-height:0;
     display:flex;
+    flex-direction:column;
     align-items:center;
     justify-content:center;
   }
-  .logo-area img{
-    width:50%;
+  .logo-block{
+    width:34vw;
+    max-width:230px;
+  }
+  .logo-block img{
+    width:100%;
     height:auto;
     display:block;
+  }
+  .logo-caption{
+    display:flex;
+    justify-content:space-between;
+    width:100%;
+    margin-top:3vw;
+    font-size:clamp(10px, 2.4vw, 13px);
+    line-height:1;
   }
 
   .social-row{
@@ -77,47 +90,7 @@
   }
 
   /* =========================================================
-     BLOCK 2 — "поверните экран" (10%)
-     Its own dedicated section again. It's never a scroll-snap
-     point (only screen1/screen2 are), so scrolling always glides
-     through it and comes to rest on a full 100% screen — never
-     with the banner half-visible.
-     ========================================================= */
-  .rotate-banner{
-    height:10svh;
-    border-top:1px solid var(--fg);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:10px;
-  }
-  .rotate-banner .icon{
-    width:18px;
-    height:18px;
-    flex:0 0 auto;
-    animation:tilt 1.6s ease-in-out infinite;
-    transform-origin:50% 50%;
-  }
-  .rotate-banner .icon svg{
-    width:100%;
-    height:100%;
-    stroke:var(--fg);
-    stroke-width:1.4;
-    fill:none;
-  }
-  .rotate-banner span{
-    font-size:12px;
-    letter-spacing:0.02em;
-  }
-  @keyframes tilt{
-    0%   { transform:rotate(0deg); }
-    45%  { transform:rotate(-90deg); }
-    55%  { transform:rotate(-90deg); }
-    100% { transform:rotate(0deg); }
-  }
-
-  /* =========================================================
-     BLOCK 3 — pdf gallery, rotated for landscape reading (100%)
+     BLOCK 2 — 3D projects carousel (100%)
      ========================================================= */
   .screen2{
     height:100svh;
@@ -127,65 +100,101 @@
     overflow:hidden;
     border-top:1px solid var(--fg);
     background:var(--bg);
-  }
-
-  /* the gallery only occupies the actual photo stage (inset by the
-     margins) — the white margin strips around it belong to .screen2,
-     not to the scroller, so swiping there falls through to the
-     normal page scroll instead of flipping through the portfolio */
-  .pdf-gallery{
-    position:absolute;
-    top:var(--marginY);
-    bottom:var(--marginY);
-    left:var(--marginX);
-    right:var(--marginX);
     display:flex;
-    flex-direction:row;
-    overflow-x:auto;
-    overflow-y:hidden;
-    scroll-snap-type:x mandatory;
-    -webkit-overflow-scrolling:touch;
-    touch-action:pan-x;
+    flex-direction:column;
+    justify-content:center;
+    padding:var(--marginY) 0;
   }
-  .pdf-gallery::-webkit-scrollbar{ display:none; }
-  .pdf-gallery{ scrollbar-width:none; }
 
-  .pdf-slide{
-    flex:0 0 100%;
+  /* blurred backdrop of the active photo — confined to this section only,
+     so it only ever colors the bottom half of the page */
+  .screen2-bg{
+    position:absolute;
+    inset:0;
+    z-index:0;
+  }
+  .screen2-bg::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:var(--bg);
+    opacity:0.62;
+  }
+  .bg-layer{
+    position:absolute;
+    inset:-12%;
+    background-size:cover;
+    background-position:center;
+    filter:blur(46px) saturate(1.1);
+    transform:scale(1.12);
+    opacity:0;
+    transition:opacity .7s ease;
+  }
+  .bg-layer.active{ opacity:0.55; }
+
+  .carousel3d-wrap{
+    position:relative;
+    z-index:1;
+    width:100%;
+    padding:0 var(--marginX);
+    touch-action:pan-y;
+  }
+  .carousel3d{
+    position:relative;
+    width:100%;
+    max-width:340px;
+    aspect-ratio:3/4;
+    margin:0 auto;
+    perspective:1100px;
+  }
+  .card3d{
+    position:absolute;
+    inset:0;
+    overflow:hidden;
+    cursor:pointer;
+    will-change:transform, opacity;
+    backface-visibility:hidden;
+  }
+  .card3d img{
     width:100%;
     height:100%;
-    scroll-snap-align:center;
-    scroll-snap-stop:always;
+    object-fit:cover;
+    object-position:center;
+    display:block;
+    -webkit-user-drag:none;
+    user-select:none;
+    pointer-events:none;
+  }
+  .card3d img.align-left{
+    object-position:left center;
+  }
+
+  .carousel3d-caption{
+    position:relative;
+    z-index:1;
+    width:100%;
+    max-width:340px;
+    margin:18px auto 0;
+    text-align:center;
+  }
+  .carousel3d-caption .title{
+    font-size:13px;
+    line-height:1.45;
+  }
+  .carousel3d-caption .date{
+    font-size:11px;
+    opacity:0.4;
+    margin-top:4px;
+  }
+
+  .dots{
+    position:relative;
+    z-index:1;
     display:flex;
     align-items:center;
     justify-content:center;
-  }
-  .pdf-slide img{
-    -webkit-user-drag:none;
-    user-select:none;
-    display:block;
-    object-fit:contain;
-    width:auto;
-    height:auto;
-    transform:rotate(90deg);
-    max-width:calc(100svh - (var(--marginY) * 2));
-    max-height:calc(100vw - (var(--marginX) * 2));
-    cursor:zoom-in;
-  }
-
-  /* dots live in the bottom margin strip, in a row — width is set
-     from JS to match the actual rendered width of the photo, not
-     the full margin-to-margin stage */
-  .dots{
-    position:absolute;
-    left:50%;
-    bottom:calc(var(--marginY) / 2);
-    transform:translate(-50%, 50%);
-    display:flex;
-    flex-direction:row-reverse;
-    align-items:center;
-    justify-content:space-between;
-    z-index:3;
+    gap:10px;
+    margin-top:26px;
   }
   .dots i{
     width:12px;
@@ -203,6 +212,7 @@
     border-radius:50%;
     background:var(--fg);
     opacity:0.25;
+    transition:opacity .2s ease, width .2s ease, height .2s ease;
   }
   .dots i.active::before{
     opacity:1;
@@ -211,11 +221,7 @@
   }
 
   /* =========================================================
-     LIGHTBOX — fullscreen zoomable preview
-     Pinch-zoom / double-tap-zoom is native browser behavior
-     (the viewport meta tag doesn't disable scaling), so no custom
-     zoom JS is needed — this just gives it a clean, isolated,
-     full-bleed image to zoom into instead of the cramped layout.
+     LIGHTBOX — telegram-style fullscreen preview with pinch-zoom
      ========================================================= */
   .lightbox{
     position:fixed;
@@ -223,8 +229,10 @@
     background:rgba(0,0,0,0.92);
     z-index:1000;
     display:flex;
+    flex-direction:column;
     align-items:center;
     justify-content:center;
+    padding:24px;
     opacity:0;
     visibility:hidden;
     transition:opacity .25s ease, visibility 0s linear .25s;
@@ -234,19 +242,51 @@
     visibility:visible;
     transition:opacity .25s ease;
   }
+  .lightbox-frame{
+    position:relative;
+    width:100%;
+    max-width:92vw;
+    max-height:76svh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    touch-action:none;
+  }
   .lightbox img{
     display:block;
-    object-fit:contain;
+    max-width:100%;
+    max-height:76svh;
     width:auto;
     height:auto;
-    max-width:96vw;
-    max-height:96svh;
-    transform:rotate(90deg) scale(0.94);
+    object-fit:contain;
     transform-origin:center center;
+    transform:scale(0.94);
     transition:transform .25s ease;
+    -webkit-user-drag:none;
+    user-select:none;
   }
   .lightbox.open img{
-    transform:rotate(90deg) scale(1);
+    transform:scale(1);
+  }
+  .lightbox.open img.zooming{
+    transition:none;
+  }
+  .lightbox-caption{
+    width:100%;
+    max-width:min(86vw, 420px);
+    text-align:center;
+    color:#fff;
+    margin-top:16px;
+  }
+  .lightbox-caption .title{
+    font-size:13px;
+    line-height:1.45;
+  }
+  .lightbox-caption .date{
+    font-size:11px;
+    opacity:0.5;
+    margin-top:4px;
   }
   .lightbox-close{
     position:fixed;
@@ -280,7 +320,12 @@
 
   <section class="screen1">
     <div class="logo-area">
-      <img src="assets/logo.png" alt="knstwollen">
+      <div class="logo-block">
+        <img src="assets/logo.png" alt="knstwollen">
+        <div class="logo-caption">
+          <span>k</span><span>u</span><span>n</span><span>s</span><span>t</span><span>w</span><span>o</span><span>l</span><span>l</span><span>e</span><span>n</span>
+        </div>
+      </div>
     </div>
     <div class="social-row">
       <a href="https://www.instagram.com/knstwollen?stkn=MWtyc2pvOHdrYTl5eQ==" data-app="instagram://user?username=knstwollen" class="app-link">inst</a>
@@ -289,21 +334,30 @@
     </div>
   </section>
 
-  <section class="rotate-banner">
-    <span class="icon">
-      <svg viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="2.2"/><line x1="10" y1="18" x2="14" y2="18"/></svg>
-    </span>
-    <span>поверните экран</span>
-  </section>
-
   <section class="screen2" id="screen2">
-    <div class="pdf-gallery" id="pdfGallery"></div>
+    <div class="screen2-bg">
+      <div class="bg-layer" id="bgLayerA"></div>
+      <div class="bg-layer" id="bgLayerB"></div>
+    </div>
+    <div class="carousel3d-wrap" id="carousel3dWrap">
+      <div class="carousel3d" id="carousel3d"></div>
+    </div>
+    <div class="carousel3d-caption">
+      <div class="title" id="c3dTitle"></div>
+      <div class="date" id="c3dDate"></div>
+    </div>
     <div class="dots" id="dots"></div>
   </section>
 
   <div class="lightbox" id="lightbox">
     <button class="lightbox-close" id="lightboxClose" aria-label="Закрыть">&times;</button>
-    <img id="lightboxImg" src="" alt="">
+    <div class="lightbox-frame" id="lightboxFrame">
+      <img id="lightboxImg" src="" alt="">
+    </div>
+    <div class="lightbox-caption">
+      <div class="title" id="lightboxTitle"></div>
+      <div class="date" id="lightboxDate"></div>
+    </div>
   </div>
 
 <script>
@@ -327,122 +381,327 @@
     });
   });
 
-  // ---- build the pdf gallery, numeric ascending order (13 removed) ----
-  const PAGES = [14,15,16,18,19,110,111,112,113,114,115,116,117,118,119,120,121,122,123,124];
-  const TOTAL = PAGES.length;
+  // ---- project data ----
+  // align:'left' -> when this thumbnail gets cropped by object-fit:cover,
+  // keep the LEFT side of the photo instead of the center
+  const SLIDES = [
+    { src:'assets/2.jpg', title:'Комплект барной мебели "Сервиз"', date:'Москва | 2026' },
+    { src:'assets/3.jpg', title:'Концепция | фотобудка "В ритме мегаполиса"', date:'Москва | 2026', align:'left' },
+    { src:'assets/4.jpg', title:'Концепция | реновация интерьера бара "Ровестник"', date:'Москва | 2026' },
+    { src:'assets/5.jpg', title:'Концепция | ленд арт для фестиваля "Архстояние"', date:'Никола-Ленивец | 2025' }
+  ];
+  const N = SLIDES.length;
 
-  const gallery = document.getElementById('pdfGallery');
+  const carousel3dWrap = document.getElementById('carousel3dWrap');
+  const carousel3d = document.getElementById('carousel3d');
   const dotsWrap = document.getElementById('dots');
+  const bgLayerA = document.getElementById('bgLayerA');
+  const bgLayerB = document.getElementById('bgLayerB');
+  const c3dTitle = document.getElementById('c3dTitle');
+  const c3dDate = document.getElementById('c3dDate');
 
-  // ---- lightbox: tap a photo to open it fullscreen and zoomable ----
-  // pinch/double-tap zoom is native browser behavior here since the
-  // viewport meta tag never disables scaling — no custom zoom JS needed
+  // ---- lightbox: tap a photo to open it fullscreen, telegram-style, with
+  // pinch-to-zoom / double-tap-to-zoom / pan, and the full uncropped image ----
   const lightbox = document.getElementById('lightbox');
+  const lightboxFrame = document.getElementById('lightboxFrame');
   const lightboxImg = document.getElementById('lightboxImg');
+  const lightboxTitle = document.getElementById('lightboxTitle');
+  const lightboxDate = document.getElementById('lightboxDate');
   const lightboxClose = document.getElementById('lightboxClose');
 
-  function openLightbox(src, alt){
-    lightboxImg.src = src;
-    lightboxImg.alt = alt || '';
+  let zScale = 1, zX = 0, zY = 0;
+  const ZOOM_MAX = 4, ZOOM_MIN = 1;
+
+  function applyZoom(animate){
+    lightboxImg.classList.toggle('zooming', !animate);
+    lightboxImg.style.transform = `translate(${zX}px, ${zY}px) scale(${zScale})`;
+  }
+  function clampPan(){
+    // keep the image roughly on-screen once zoomed in
+    const rect = lightboxFrame.getBoundingClientRect();
+    const maxX = (rect.width * (zScale - 1)) / 2 + rect.width * 0.15;
+    const maxY = (rect.height * (zScale - 1)) / 2 + rect.height * 0.15;
+    zX = Math.max(-maxX, Math.min(maxX, zX));
+    zY = Math.max(-maxY, Math.min(maxY, zY));
+  }
+  function resetZoom(){
+    zScale = 1; zX = 0; zY = 0;
+    applyZoom(true);
+  }
+
+  function distance(t0, t1){
+    return Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY);
+  }
+  function midpoint(t0, t1){
+    return { x:(t0.clientX + t1.clientX) / 2, y:(t0.clientY + t1.clientY) / 2 };
+  }
+
+  let pinchActive = false, pinchStartDist = 0, pinchStartScale = 1;
+  let panActive = false, panStartX = 0, panStartY = 0, panStartZX = 0, panStartZY = 0;
+  let lastTapTime = 0, lastTapX = 0, lastTapY = 0;
+
+  lightboxFrame.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 2){
+      pinchActive = true;
+      panActive = false;
+      pinchStartDist = distance(e.touches[0], e.touches[1]);
+      pinchStartScale = zScale;
+    } else if (e.touches.length === 1){
+      const t = e.touches[0];
+      const now = Date.now();
+      const dt = now - lastTapTime;
+      const closeTap = Math.hypot(t.clientX - lastTapX, t.clientY - lastTapY) < 40;
+      if (dt < 320 && closeTap){
+        // double tap: toggle zoom
+        if (zScale > 1.01){
+          resetZoom();
+        } else {
+          zScale = 2.4;
+          zX = 0; zY = 0;
+          applyZoom(true);
+        }
+        lastTapTime = 0;
+      } else {
+        lastTapTime = now;
+        lastTapX = t.clientX;
+        lastTapY = t.clientY;
+      }
+      if (zScale > 1.01){
+        panActive = true;
+        panStartX = t.clientX;
+        panStartY = t.clientY;
+        panStartZX = zX;
+        panStartZY = zY;
+      }
+    }
+  }, { passive:true });
+
+  lightboxFrame.addEventListener('touchmove', (e) => {
+    if (pinchActive && e.touches.length === 2){
+      e.preventDefault();
+      const dist = distance(e.touches[0], e.touches[1]);
+      zScale = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, pinchStartScale * (dist / pinchStartDist)));
+      clampPan();
+      applyZoom(false);
+    } else if (panActive && e.touches.length === 1 && zScale > 1.01){
+      e.preventDefault();
+      const t = e.touches[0];
+      zX = panStartZX + (t.clientX - panStartX);
+      zY = panStartZY + (t.clientY - panStartY);
+      clampPan();
+      applyZoom(false);
+    }
+  }, { passive:false });
+
+  function endTouch(){
+    pinchActive = false;
+    panActive = false;
+    if (zScale < 1.01){
+      resetZoom();
+    } else {
+      applyZoom(true);
+    }
+  }
+  lightboxFrame.addEventListener('touchend', endTouch);
+  lightboxFrame.addEventListener('touchcancel', endTouch);
+
+  // desktop convenience: wheel to zoom, double-click to toggle zoom
+  lightboxFrame.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    zScale = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, zScale - e.deltaY * 0.0025));
+    clampPan();
+    applyZoom(false);
+  }, { passive:false });
+  lightboxFrame.addEventListener('dblclick', () => {
+    if (zScale > 1.01){ resetZoom(); }
+    else { zScale = 2.4; applyZoom(true); }
+  });
+
+  function openLightbox(realIndex){
+    const data = SLIDES[realIndex];
+    resetZoom();
+    lightboxImg.src = data.src;
+    lightboxImg.alt = data.title;
+    lightboxTitle.textContent = data.title;
+    lightboxDate.textContent = data.date;
     lightbox.classList.add('open');
     document.body.style.overflow = 'hidden';
   }
   function closeLightbox(){
     lightbox.classList.remove('open');
     document.body.style.overflow = '';
+    resetZoom();
   }
   lightboxClose.addEventListener('click', closeLightbox);
   lightbox.addEventListener('click', (e) => {
     if (e.target === lightbox) closeLightbox(); // tap on the dark backdrop, not the photo
   });
 
-  PAGES.forEach((n, i) => {
-    const slide = document.createElement('div');
-    slide.className = 'pdf-slide';
+  // =========================================================
+  // 3D coverflow carousel — smooth, transform-based, infinite loop,
+  // driven by pointer events (works for touch, mouse and pen alike)
+  // =========================================================
+  const cardEls = SLIDES.map((data, i) => {
+    const card = document.createElement('div');
+    card.className = 'card3d';
     const img = document.createElement('img');
-    img.src = `assets/pdf/${n}.jpg`;
-    img.alt = `лист портфолио ${i + 1}`;
-    img.loading = (i <= 1) ? 'eager' : 'lazy';
+    img.src = data.src;
+    img.alt = data.title;
+    img.loading = 'lazy';
     img.draggable = false;
-    img.addEventListener('click', () => {
-      if (mouseDragged) return; // ignore the click that follows a desktop drag-scroll
-      openLightbox(img.src, img.alt);
-    });
-    slide.appendChild(img);
-    // inserted at the front each time so the DOM ends up in reverse
-    // page order (last page first, page 1 last) — this gives the same
-    // right-to-left visual flow as flex-direction:row-reverse would,
-    // but with normal, predictable scrollLeft behavior in every browser
-    gallery.insertBefore(slide, gallery.firstChild);
+    if (data.align === 'left') img.classList.add('align-left');
+    card.appendChild(img);
+    card.dataset.index = String(i);
+    carousel3d.appendChild(card);
+    return card;
+  });
 
+  SLIDES.forEach((_, i) => {
     const dot = document.createElement('i');
     if (i === 0) dot.classList.add('active');
     dot.addEventListener('click', () => {
-      const target = (TOTAL - 1 - i) * gallery.clientWidth;
-      gallery.scrollTo({ left: target, behavior:'smooth' });
+      baseIndex = i;
+      render(baseIndex, true);
+      syncUI();
     });
     dotsWrap.appendChild(dot);
   });
-
   const dotEls = Array.from(dotsWrap.children);
 
-  // slides are inserted into the DOM in reverse page order (see above),
-  // so page 1 sits at the rightmost position and the scroll position
-  // needs to be inverted to map back to its logical index
-  function currentIndex(){
-    const raw = Math.round(gallery.scrollLeft / gallery.clientWidth);
-    return TOTAL - 1 - raw;
-  }
-  function updateDots(){
-    const idx = Math.min(Math.max(currentIndex(), 0), TOTAL - 1);
-    dotEls.forEach((d, i) => d.classList.toggle('active', i === idx));
-  }
-  gallery.addEventListener('scroll', () => {
-    window.requestAnimationFrame(updateDots);
-  }, { passive:true });
-  // extra safety net: once the snap settles, make sure the dot matches
-  // exactly (covers browsers where the scroll event can be sparse)
-  gallery.addEventListener('scrollend', updateDots);
+  let baseIndex = 0;
+  let currentReal = -1;
+  let bgToggle = false;
 
-  // match the dots row's width to the actual rendered width of the
-  // photo (all pages share the same aspect ratio, so measuring the
-  // currently visible one is enough)
-  function updateDotsWidth(){
-    const idx = Math.min(Math.max(currentIndex(), 0), TOTAL - 1);
-    const img = gallery.children[idx] && gallery.children[idx].querySelector('img');
-    if (!img) return;
-    const w = img.getBoundingClientRect().width;
-    if (w > 0) dotsWrap.style.width = w + 'px';
+  function wrapDiff(diff){
+    while (diff > N / 2) diff -= N;
+    while (diff <= -N / 2) diff += N;
+    return diff;
   }
-  const firstImg = gallery.querySelector('img');
-  if (firstImg){
-    if (firstImg.complete) updateDotsWidth();
-    else firstImg.addEventListener('load', updateDotsWidth, { once:true });
+
+  function render(current, animate){
+    cardEls.forEach((el, i) => {
+      const diff = wrapDiff(i - current);
+      const absDiff = Math.abs(diff);
+      // flat carousel: no rotation/tilt — only translateX + scale, so the
+      // two neighboring photos sit flush next to the center one
+      const translateX = diff * 78;
+      const scale = Math.max(1 - absDiff * 0.24, 0.3);
+      const opacity = Math.max(1 - absDiff * 0.55, 0);
+      const visible = opacity > 0.03;
+      el.style.transition = animate
+        ? 'transform .5s cubic-bezier(.22,.68,0,1), opacity .5s ease'
+        : 'none';
+      el.style.transform = `translateX(${translateX}%) scale(${scale})`;
+      el.style.opacity = String(opacity);
+      el.style.pointerEvents = visible ? 'auto' : 'none';
+      el.style.zIndex = String(Math.round(100 - absDiff * 10));
+    });
   }
-  window.addEventListener('resize', updateDotsWidth);
-  window.addEventListener('orientationchange', updateDotsWidth);
 
-  // desktop-testing convenience: drag with mouse
-  let isDown = false, startX = 0, startLeft = 0, mouseDragged = false;
-  gallery.addEventListener('mousedown', (e) => {
-    isDown = true;
-    mouseDragged = false;
-    startX = e.pageX;
-    startLeft = gallery.scrollLeft;
-  });
-  window.addEventListener('mouseup', () => { isDown = false; });
-  window.addEventListener('mousemove', (e) => {
-    if(!isDown) return;
-    if (Math.abs(e.pageX - startX) > 5) mouseDragged = true;
-    gallery.scrollLeft = startLeft - (e.pageX - startX);
+  function updateDots(realIndex){
+    dotEls.forEach((d, i) => d.classList.toggle('active', i === realIndex));
+  }
+
+  // crossfades the blurred backdrop between two stacked layers so the
+  // change never pops — only ever painted behind this section
+  function updateBg(realIndex){
+    const src = SLIDES[realIndex].src;
+    const show = bgToggle ? bgLayerA : bgLayerB;
+    const hide = bgToggle ? bgLayerB : bgLayerA;
+    show.style.backgroundImage = `url(${src})`;
+    requestAnimationFrame(() => {
+      show.classList.add('active');
+      hide.classList.remove('active');
+    });
+    bgToggle = !bgToggle;
+  }
+
+  function setCaption(realIndex){
+    c3dTitle.textContent = SLIDES[realIndex].title;
+    c3dDate.textContent = SLIDES[realIndex].date;
+  }
+
+  function syncUI(){
+    if (baseIndex === currentReal) return;
+    currentReal = baseIndex;
+    updateDots(currentReal);
+    updateBg(currentReal);
+    setCaption(currentReal);
+  }
+
+  function onCardClick(i){
+    if (dragMoved) return;
+    const diff = Math.round(wrapDiff(i - baseIndex));
+    if (diff === 0){
+      openLightbox(i);
+    } else {
+      baseIndex = i;
+      render(baseIndex, true);
+      syncUI();
+    }
+  }
+
+  // ---- drag / swipe handling (pointer events cover touch + mouse) ----
+  let dragging = false, dragMoved = false, dragStartX = 0, dragUnits = 0, cardWidth = 1;
+
+  carousel3dWrap.addEventListener('pointerdown', (e) => {
+    dragging = true;
+    dragMoved = false;
+    dragUnits = 0;
+    dragStartX = e.clientX;
+    cardWidth = carousel3d.getBoundingClientRect().width || 1;
+    try { carousel3dWrap.setPointerCapture(e.pointerId); } catch(err){}
   });
 
-  // start on page 1, which sits at the rightmost scroll position
-  requestAnimationFrame(() => {
-    gallery.scrollLeft = gallery.scrollWidth - gallery.clientWidth;
-    updateDots();
-    updateDotsWidth();
+  carousel3dWrap.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    const dx = e.clientX - dragStartX;
+    if (Math.abs(dx) > 4) dragMoved = true;
+    dragUnits = dx / cardWidth;
+    render(baseIndex - dragUnits, false);
   });
+
+  function endDrag(e){
+    if (!dragging) return;
+    dragging = false;
+    const wasTap = !dragMoved;
+    // resolve which card was tapped ourselves: once the wrapper has pointer
+    // capture, the browser's own 'click' event no longer reaches the card,
+    // so a listener on the card itself never fires
+    let tappedIndex = null;
+    if (wasTap && e && typeof e.clientX === 'number'){
+      const el = document.elementFromPoint(e.clientX, e.clientY);
+      const card = el && el.closest ? el.closest('.card3d') : null;
+      if (card && card.dataset.index !== undefined) tappedIndex = parseInt(card.dataset.index, 10);
+    }
+    if (Math.abs(dragUnits) > 0.18){
+      const delta = dragUnits > 0 ? -1 : 1;
+      baseIndex = ((baseIndex + delta) % N + N) % N;
+    }
+    dragUnits = 0;
+    render(baseIndex, true);
+    syncUI();
+    if (tappedIndex !== null) onCardClick(tappedIndex);
+  }
+  carousel3dWrap.addEventListener('pointerup', endDrag);
+  carousel3dWrap.addEventListener('pointercancel', () => endDrag(null));
+  carousel3dWrap.addEventListener('pointerleave', (e) => { if (dragging) endDrag(null); });
+
+  window.addEventListener('resize', () => {
+    render(baseIndex, false);
+  });
+  window.addEventListener('orientationchange', () => {
+    render(baseIndex, false);
+  });
+
+  // ---- initial state ----
+  render(0, false);
+  updateDots(0);
+  setCaption(0);
+  bgLayerA.style.backgroundImage = `url(${SLIDES[0].src})`;
+  bgLayerA.classList.add('active');
+  bgToggle = true;
+  currentReal = 0;
 
   // ---- open the site scrolled to the bottom, then glide up to the top ----
   // (custom animation instead of native smooth-scroll so the speed is
